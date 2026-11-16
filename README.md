@@ -19,6 +19,18 @@ The options appear inside FlareUI's own settings window. You can also type `/fla
 - To keep it light, only buttons that can show a timer are watched: attack spells, and buff spells already seen to leave a buff on you.
 - While the timer shows, it covers the button, so the out-of-range and out-of-mana tints are hidden on that button until the effect ends.
 
+## Install
+
+1. Download the latest zip from this project's [Releases](https://github.com/ronborens/FlareUI_AuraTimers/releases).
+2. Extract it into your game's `Interface/AddOns` folder, so that `FlareUI_AuraTimers` sits beside `FlareUI`.
+3. Restart the game.
+
+To run it straight from the source, clone this repository into `Interface/AddOns` as `FlareUI_AuraTimers`.
+
+## Problems and ideas
+
+Please open an [issue](https://github.com/ronborens/FlareUI_AuraTimers/issues) and say which FlareUI version you have.
+
 ## Requirements
 
 - [FlareUI](https://www.curseforge.com/wow/addons/flareui) must be installed and enabled.
