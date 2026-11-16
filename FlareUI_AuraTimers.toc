@@ -1,0 +1,13 @@
+## Interface: 16001
+## Title: FlareUI: Buff & Debuff Timers
+## Notes: Unofficial FlareUI extension. Your buff and debuff timers on your action buttons, in place of the cooldown while the effect is up.
+## Author: ronborens
+## Version: 1.0.0
+## Dependencies: FlareUI
+## Group: FlareUI
+## SavedVariables: FlareUI_AuraTimersDB
+## Category: User Interface
+## X-License: MIT
+
+Options.lua
+AuraTimers.lua
