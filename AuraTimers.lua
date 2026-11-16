@@ -66,23 +66,28 @@ local function Learned()
     return ns.db.auraIDs
 end
 
--- the aura IDs a spell's buff or debuff can have, and a key that changes when they do
+-- the aura IDs a spell's buff or debuff can have, a key that changes when they do, and whether the
+-- spell is known to leave an aura at all (the game ties one to it, or one was seen under its name)
 local function AuraIDs(id, name)
-    local set, list = { [id] = true }, { id }
+    local set, list, known = { [id] = true }, { id }, false
     local ok, aura = pcall(C_UnitAuras.GetCooldownAuraBySpellID, id)
-    if ok and Readable(aura) and type(aura) == "number" and aura > 0 and not set[aura] then
-        set[aura] = true
-        list[#list + 1] = aura
+    if ok and Readable(aura) and type(aura) == "number" and aura > 0 then
+        known = true
+        if not set[aura] then
+            set[aura] = true
+            list[#list + 1] = aura
+        end
     end
     local learned = Learned()
     for auraID in pairs(learned and learned[name] or {}) do
+        known = true
         if not set[auraID] then
             set[auraID] = true
             list[#list + 1] = auraID
         end
     end
     table.sort(list)
-    return set, table.concat(list, ",")
+    return set, table.concat(list, ","), known
 end
 
 -- Auras are secret (in an instance even out of combat). An error or an unreadable answer counts as
@@ -295,7 +300,14 @@ local function Sync(button, on)
     end
     local okHarm, harmful = pcall(C_Spell.IsSpellHarmful, id)
     local unit = (okHarm and Readable(harmful) and harmful) and "target" or "player"
-    local ids, idKey = AuraIDs(id, name)
+    local ids, idKey, known = AuraIDs(id, name)
+    -- A spell cast on yourself or a friend gets a watcher only once it is known to leave a buff on
+    -- you: most (heals, mounts, professions) never do, and each watcher is work on every buff change.
+    -- A spell cast on an enemy is always watched: a debuff on a target can't be learned beforehand.
+    if unit == "player" and not known then
+        Disable(t)
+        return
+    end
     local sig = unit .. ":" .. idKey
     if t and t.sig == sig then return end
     if not t then
@@ -368,6 +380,8 @@ local function OnEvent(_, event)
             pendingBuild = false
             Schedule()
         end
+        -- a buff first cast in the fight and still up is learned now
+        C_Timer.After(1, function() if Learn() then Schedule() end end)
     elseif event == "UNIT_AURA" and not learnPending then
         -- a burst of aura changes is read once, a second later
         learnPending = true
@@ -425,7 +439,7 @@ ns.OnReady("FlareUI_AuraTimersDB", DEFAULTS, function()
     ns.RegisterOptions("FlareUI: Buff & Debuff Timers", {
         { key = "enabled", label = "Buff & Debuff Timers",
           flare = { key = "ab.extAuraTimers", section = "ab.buttonAppearance", half = true },
-          tip = "While a spell's effect is up, its action button shows the time left in gold instead of the cooldown, with its stacks. Your buffs (Bloodrage, Lightning Shield) and your debuffs on your target (Flame Shock). Works in combat too. Adds a little work per action button, which can add up in large raids." },
+          tip = "While a spell's effect is up, its action button shows the time left in gold instead of the cooldown, with its stacks. Your buffs (Bloodrage, Lightning Shield) and your debuffs on your target (Flame Shock). Works in combat too. A buff's timer starts showing after the first time you have that buff out of combat." },
     }, "/flaretimers", function() if started then AT.Refresh() end end)
 end, function()
     started = true

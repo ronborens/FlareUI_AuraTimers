@@ -15,8 +15,8 @@ The options appear inside FlareUI's own settings window. You can also type `/fla
 
 ## Good to know
 
-- A spell whose buff has a different name or ID is learned the first time you have the buff out of combat.
-- Each action button gets its own small watcher. In large raids this adds a little work for your computer; switch the option off there if you notice it.
+- A buff's timer starts showing after the first time you have that buff out of combat. Debuffs on your target work straight away.
+- To keep it light, only buttons that can show a timer are watched: attack spells, and buff spells already seen to leave a buff on you.
 - While the timer shows, it covers the button, so the out-of-range and out-of-mana tints are hidden on that button until the effect ends.
 
 ## Requirements
