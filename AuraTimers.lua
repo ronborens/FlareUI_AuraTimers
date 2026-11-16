@@ -172,10 +172,11 @@ local function Paint(part, actionButton)
 end
 
 -- Level and crop again, for art that can be touched now (out of a fight)
+-- (in a fight the art's own pieces are forbidden even when its frame says it is not)
 local function Retouch(part, actionButton)
-    if part:IsForbidden() then return end
-    Level(part, actionButton)
-    Paint(part, actionButton)
+    if InCombatLockdown() or part:IsForbidden() then return end
+    pcall(Level, part, actionButton)
+    pcall(Paint, part, actionButton)
 end
 
 -- The timer's look on an action button: part (laid over the button) gets an icon over the cooldown, a
