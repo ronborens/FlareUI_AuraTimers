@@ -1,23 +1,43 @@
 # FlareUI: Buff & Debuff Timers
 
-Shows how long your buff or debuff has left, right on the action button that cast it.
+An extension for the FlareUI interface that puts your buff and debuff timers directly on your action buttons, so you can see how long an effect has left without looking away from your bars.
 
-While a spell's effect is up, its button shows the time left in gold in place of the cooldown number, with a gold sweep and the stack count. When the effect ends, the normal cooldown comes back.
+## What it does
 
-- Your buffs, such as Bloodrage or Lightning Shield (with its charges)
-- Your debuffs on your current target, such as Flame Shock
-- Only your own effects count
-- Works in combat
+In the base game, an action button only tells you when a spell is ready to cast again. It does not tell you how long the effect you just cast will last. To know when Flame Shock is about to fall off your target, or how many Lightning Shield charges you have left, you have to look at the small buff and debuff icons somewhere else on the screen.
+
+With this addon, the button itself shows it:
+
+- **Time left, in gold.** While the spell's effect is active, the button shows the remaining time in gold in the middle of the button, in place of the usual cooldown number.
+- **A gold sweep.** A gold clock-style sweep drains over the button as the effect runs out, so you can read it at a glance.
+- **Stacks and charges.** If the effect has stacks or charges, the count shows in the corner of the button.
+- **Back to normal afterwards.** The moment the effect ends, the button shows its normal cooldown again.
+
+It works the same way as Blizzard's Cooldown Manager, but on the action bars you already use.
+
+## Examples
+
+- **Shaman:** cast Flame Shock and its button counts down the debuff on your target, so you know exactly when to reapply it. Lightning Shield shows its time left and its remaining charges.
+- **Warrior:** press Bloodrage and the button shows how long the rage generation lasts before showing the cooldown.
+- **Any class:** any spell on your bars that leaves a buff on you, or a debuff of yours on your target, gets a timer.
+
+## How it changes your play
+
+- You keep your eyes on your action bars and your target instead of hunting through rows of small icons.
+- You reapply damage-over-time effects at the right moment instead of too early or too late.
+- You notice a self-buff is about to run out because the button you would press to renew it is the one counting down.
+
+## Details
+
+- **Your effects only.** It shows buffs on you and debuffs that you put on your current target. Other players' effects are ignored.
+- **Works in combat.** The timers keep running and updating during fights.
+- **Light on performance.** Only buttons that can show a timer are watched: attack spells, and buff spells already seen to leave a buff on you.
+- **Buffs are learned once.** A buff's timer starts showing after the first time you have that buff out of combat. Debuffs on your target work straight away.
+- **One limit.** While a timer is showing it covers the button, so the red "out of range" and blue "out of mana" tints are hidden on that button until the effect ends.
 
 ## Options
 
-The options appear inside FlareUI's own settings window. You can also type `/flaretimers`, or open the game's Options > AddOns.
-
-## Good to know
-
-- A buff's timer starts showing after the first time you have that buff out of combat. Debuffs on your target work straight away.
-- To keep it light, only buttons that can show a timer are watched: attack spells, and buff spells already seen to leave a buff on you.
-- While the timer shows, it covers the button, so the out-of-range and out-of-mana tints are hidden on that button until the effect ends.
+The on/off switch appears inside FlareUI's own settings window, under Action Bars > Button Appearance. You can also type `/flaretimers`, or open the game's Options > AddOns.
 
 ## Install
 
