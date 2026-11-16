@@ -1,0 +1,9 @@
+package-as: FlareUI_AuraTimers
+
+manual-changelog:
+  filename: CHANGELOG.md
+  markup-type: markdown
+
+ignore:
+  - README.md
+  - .github
