@@ -225,10 +225,15 @@ end
 -- The group's button: the timer's art, laid over the action button, filled by the game. The game can
 -- make more than one over time (its pool): each one's art is kept, for Retouch.
 local function InitFrame(actionButton)
+    local made = setmetatable({}, { __mode = "k" })   -- the game can set a button up again: one art each
     return function(auraButton)
-        local part = CreateArt(CreateFrame("Frame", nil, auraButton), actionButton)
-        actionButton.FlareUIExt_AuraArts = actionButton.FlareUIExt_AuraArts or setmetatable({}, { __mode = "k" })
-        actionButton.FlareUIExt_AuraArts[part] = true
+        local part = made[auraButton]
+        if not part then
+            part = CreateArt(CreateFrame("Frame", nil, auraButton), actionButton)
+            made[auraButton] = part
+            actionButton.FlareUIExt_AuraArts = actionButton.FlareUIExt_AuraArts or setmetatable({}, { __mode = "k" })
+            actionButton.FlareUIExt_AuraArts[part] = true
+        end
         pcall(auraButton.SetIcon, auraButton, part.Icon)
         pcall(auraButton.SetDurationCooldown, auraButton, part.Swipe)
         BindTime(auraButton, part.Time)
