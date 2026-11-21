@@ -22,12 +22,12 @@ local _, ns = ...
 local AT = {}
 ns.AuraTimers = AT
 
-local DEFAULTS = { enabled = true, auraIDs = {} }
+local GOLD = { 1, 0.82, 0.25 }   -- the timer's colour unless another is picked
+local DEFAULTS = { enabled = true, auraIDs = {}, color = GOLD, showSweep = true, showTime = true, showStacks = true }
 local BAR_PREFIXES = {
     "ActionButton", "MultiBarBottomLeftButton", "MultiBarBottomRightButton", "MultiBarRightButton",
     "MultiBarLeftButton", "MultiBar5Button", "MultiBar6Button", "MultiBar7Button",
 }
-local GOLD = { 1, 0.82, 0.25 }
 local SWIPE_ALPHA = 0.45
 local FILTERS = { player = "HELPFUL|PLAYER", target = "HARMFUL|PLAYER" }
 local GROUP = "aura"
@@ -171,12 +171,26 @@ local function Paint(part, actionButton)
     for i = 1, icon:GetNumMaskTextures() do cover:AddMaskTexture(icon:GetMaskTexture(i)) end
 end
 
--- Level and crop again, for art that can be touched now (out of a fight)
+-- The picked colour on the sweep and the time, and each piece shown or not (the options). A piece
+-- switched off is made see-through and not hidden: the game shows and fills these itself.
+local function Style(part)
+    local r, g, b = ns.ColorOf("color")
+    local db = ns.db or {}
+    local sweep = db.showSweep ~= false
+    part.Swipe:SetDrawSwipe(sweep)
+    part.Swipe:SetSwipeColor(r, g, b, sweep and SWIPE_ALPHA or 0)
+    part.Time:SetTextColor(r, g, b)
+    part.Time:SetAlpha(db.showTime ~= false and 1 or 0)
+    part.Count:SetAlpha(db.showStacks ~= false and 1 or 0)
+end
+
+-- Level, crop and look again, for art that can be touched now (out of a fight)
 -- (in a fight the art's own pieces are forbidden even when its frame says it is not)
 local function Retouch(part, actionButton)
     if InCombatLockdown() or part:IsForbidden() then return end
     pcall(Level, part, actionButton)
     pcall(Paint, part, actionButton)
+    pcall(Style, part)
 end
 
 -- The timer's look on an action button: part (laid over the button) gets an icon over the cooldown, a
@@ -194,7 +208,6 @@ local function CreateArt(part, actionButton)
     swipe:SetDrawEdge(false)
     swipe:SetDrawBling(false)
     swipe:SetHideCountdownNumbers(true)
-    swipe:SetSwipeColor(GOLD[1], GOLD[2], GOLD[3], SWIPE_ALPHA)
     part.Swipe = swipe
 
     -- the texts are the swipe's own, so they draw over it at its level
@@ -203,7 +216,6 @@ local function CreateArt(part, actionButton)
     part.Time = swipe:CreateFontString(nil, "OVERLAY")
     CopyFont(part.Time, countdown, 14)
     part.Time:SetPoint("CENTER", part, "CENTER", 0, 0)
-    part.Time:SetTextColor(GOLD[1], GOLD[2], GOLD[3])
 
     part.Count = swipe:CreateFontString(nil, "OVERLAY")
     CopyFont(part.Count, actionButton.Count, 12)
@@ -211,6 +223,7 @@ local function CreateArt(part, actionButton)
 
     Level(part, actionButton)
     Paint(part, actionButton)
+    Style(part)
     return part
 end
 
@@ -220,7 +233,7 @@ local function BindTime(auraButton, fontString)
     if not (type(F) == "table" and F.SetAuraDurationText and pcall(F.SetAuraDurationText, auraButton, fontString, false)) then
         pcall(auraButton.SetDurationText, auraButton, fontString, {})
     end
-    fontString:SetTextColor(GOLD[1], GOLD[2], GOLD[3])
+    fontString:SetTextColor(ns.ColorOf("color"))   -- (FlareUI's format leaves it white)
 end
 
 -- The group's button: the timer's art, laid over the action button, filled by the game. The game can
@@ -446,7 +459,24 @@ ns.OnReady("FlareUI_AuraTimersDB", DEFAULTS, function()
         { key = "enabled", label = "Buff & Debuff Timers",
           flare = { key = "ab.extAuraTimers", section = "ab.buttonAppearance", half = true },
           tip = "While a spell's effect is up, its action button shows the time left in gold instead of the cooldown, with its stacks. Your buffs (Bloodrage, Lightning Shield) and your debuffs on your target (Flame Shock). Works in combat too. A buff's timer starts showing after the first time you have that buff out of combat." },
-    }, "/flaretimers", function() if started then AT.Refresh() end end)
+        { key = "color", label = "Timer Colour", color = true,
+          flare = { key = "ab.extAuraColor", section = "ab.buttonAppearance", half = true },
+          tip = "The colour of the timer's sweep and time on your action buttons. Gold by default. Type /flaretimers color reset to go back to gold." },
+        { key = "showSweep", label = "Timer Sweep",
+          flare = { key = "ab.extAuraSweep", section = "ab.buttonAppearance", half = true },
+          tip = "The coloured sweep that drains over the button while the effect runs out." },
+        { key = "showTime", label = "Timer Time Left",
+          flare = { key = "ab.extAuraTime", section = "ab.buttonAppearance", half = true },
+          tip = "The time left on the effect, in the middle of the button." },
+        { key = "showStacks", label = "Timer Stack Count",
+          flare = { key = "ab.extAuraStacks", section = "ab.buttonAppearance", half = true },
+          tip = "The effect's stacks or charges, in the corner of the button." },
+    }, "/flaretimers", function()
+        if not started then return end
+        -- (the look can't be touched in a fight: it follows at its end)
+        if InCombatLockdown() then pendingBuild = true end
+        AT.Refresh()
+    end)
 end, function()
     started = true
     AT.Refresh()
