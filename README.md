@@ -37,7 +37,14 @@ It works the same way as Blizzard's Cooldown Manager, but on the action bars you
 
 ## Options
 
-The on/off switch appears inside FlareUI's own settings window, under Action Bars > Button Appearance. You can also type `/flaretimers`, or open the game's Options > AddOns.
+The options appear inside FlareUI's own settings window, under Action Bars > Button Appearance. You can also type `/flaretimers`, or open the game's Options > AddOns.
+
+- **Buff & Debuff Timers:** on or off.
+- **Timer Colour:** pick your own colour for the sweep and the time. Gold by default.
+- **Timer Same as Cooldowns:** use the game's normal cooldown look (dark sweep, cooldown-number colour) instead of a colour.
+- **Timer Sweep:** show or hide the sweep.
+- **Timer Time Left:** show or hide the time in the middle of the button.
+- **Timer Stack Count:** show or hide the stacks or charges in the corner.
 
 ## Install
 
