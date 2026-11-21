@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.2.0
+
+- Timer Same as Cooldowns is now two options: Timer Number Same as Cooldowns and Timer Sweep Same as Cooldowns, so you can match just the number, just the sweep, or both.
+
 ## 1.1.0
 
 - Timer Colour: pick your own colour for the timer's sweep and time (gold by default).

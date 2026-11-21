@@ -23,7 +23,7 @@ local AT = {}
 ns.AuraTimers = AT
 
 local GOLD = { 1, 0.82, 0.25 }   -- the timer's colour unless another is picked
-local DEFAULTS = { enabled = true, auraIDs = {}, color = GOLD, cooldownLook = false, showSweep = true, showTime = true, showStacks = true }
+local DEFAULTS = { enabled = true, auraIDs = {}, color = GOLD, cooldownNumber = false, cooldownSweep = false, showSweep = true, showTime = true, showStacks = true }
 local BAR_PREFIXES = {
     "ActionButton", "MultiBarBottomLeftButton", "MultiBarBottomRightButton", "MultiBarRightButton",
     "MultiBarLeftButton", "MultiBar5Button", "MultiBar6Button", "MultiBar7Button",
@@ -173,22 +173,27 @@ end
 
 -- The picked colour on the sweep and the time, and each piece shown or not (the options). A piece
 -- switched off is made see-through and not hidden: the game shows and fills these itself.
--- The time's colour and the sweep's (with its alpha). Same as Cooldowns: the dark sweep every
--- cooldown has, and the colour the button's own cooldown number is drawn in.
+-- The time's colour and the sweep's (with its alpha): the picked colour, unless that piece is set to
+-- look as cooldowns do. Number Same as Cooldowns: the colour the button's own cooldown number is drawn
+-- in. Sweep Same as Cooldowns: the dark sweep every cooldown has.
 local COOLDOWN_SWEEP = { 0, 0, 0, 0.8 }   -- the game's own
 local function Colors(actionButton)
-    if ns.db and ns.db.cooldownLook then
-        local r, g, b = 1, 1, 1
+    local db = ns.db or {}
+    local r, g, b = ns.ColorOf("color")
+    local sr, sg, sb, sa = r, g, b, SWIPE_ALPHA
+    if db.cooldownNumber then
+        r, g, b = 1, 1, 1
         local cd = actionButton and actionButton.cooldown
         local numbers = cd and cd.GetCountdownFontString and cd:GetCountdownFontString()
         if numbers then
             local ok, nr, ng, nb = pcall(numbers.GetTextColor, numbers)
             if ok and type(nr) == "number" and type(ng) == "number" and type(nb) == "number" then r, g, b = nr, ng, nb end
         end
-        return r, g, b, COOLDOWN_SWEEP[1], COOLDOWN_SWEEP[2], COOLDOWN_SWEEP[3], COOLDOWN_SWEEP[4]
     end
-    local r, g, b = ns.ColorOf("color")
-    return r, g, b, r, g, b, SWIPE_ALPHA
+    if db.cooldownSweep then
+        sr, sg, sb, sa = COOLDOWN_SWEEP[1], COOLDOWN_SWEEP[2], COOLDOWN_SWEEP[3], COOLDOWN_SWEEP[4]
+    end
+    return r, g, b, sr, sg, sb, sa
 end
 
 local function Style(part)
@@ -482,9 +487,12 @@ ns.OnReady("FlareUI_AuraTimersDB", DEFAULTS, function()
         { key = "color", label = "Timer Colour", color = true,
           flare = { key = "ab.extAuraColor", section = "ab.buttonAppearance", half = true },
           tip = "The colour of the timer's sweep and time on your action buttons. Gold by default. Type /flaretimers color reset to go back to gold." },
-        { key = "cooldownLook", label = "Timer Same as Cooldowns",
-          flare = { key = "ab.extAuraCooldownLook", section = "ab.buttonAppearance", half = true },
-          tip = "The timer uses the game's normal cooldown look in place of the Timer Colour: the dark sweep, and the time in the colour your cooldown numbers have." },
+        { key = "cooldownNumber", label = "Timer Number Same as Cooldowns",
+          flare = { key = "ab.extAuraCooldownNumber", section = "ab.buttonAppearance", half = true },
+          tip = "The timer's time is drawn in the colour your cooldown numbers have, in place of the Timer Colour." },
+        { key = "cooldownSweep", label = "Timer Sweep Same as Cooldowns",
+          flare = { key = "ab.extAuraCooldownSweep", section = "ab.buttonAppearance", half = true },
+          tip = "The timer's sweep is the dark sweep every cooldown has, in place of the Timer Colour." },
         { key = "showSweep", label = "Timer Sweep",
           flare = { key = "ab.extAuraSweep", section = "ab.buttonAppearance", half = true },
           tip = "The coloured sweep that drains over the button while the effect runs out." },
@@ -501,6 +509,11 @@ ns.OnReady("FlareUI_AuraTimersDB", DEFAULTS, function()
         AT.Refresh()
     end)
 end, function()
+    -- (1.1.0 had one switch for both: a saved one is carried over)
+    if ns.db.cooldownLook ~= nil then
+        if ns.db.cooldownLook then ns.db.cooldownNumber, ns.db.cooldownSweep = true, true end
+        ns.db.cooldownLook = nil
+    end
     started = true
     AT.Refresh()
 end)

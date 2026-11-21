@@ -41,7 +41,8 @@ The options appear inside FlareUI's own settings window, under Action Bars > But
 
 - **Buff & Debuff Timers:** on or off.
 - **Timer Colour:** pick your own colour for the sweep and the time. Gold by default.
-- **Timer Same as Cooldowns:** use the game's normal cooldown look (dark sweep, cooldown-number colour) instead of a colour.
+- **Timer Number Same as Cooldowns:** draw the time in the colour your cooldown numbers have, instead of the Timer Colour.
+- **Timer Sweep Same as Cooldowns:** use the dark sweep every cooldown has, instead of the Timer Colour.
 - **Timer Sweep:** show or hide the sweep.
 - **Timer Time Left:** show or hide the time in the middle of the button.
 - **Timer Stack Count:** show or hide the stacks or charges in the corner.
