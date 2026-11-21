@@ -45,6 +45,36 @@ local function Readable(v)
     return v ~= nil and (canaccessvalue == nil or canaccessvalue(v))
 end
 
+-- IGNORED SPELLS. Some spells leave an effect that isn't worth a timer, and the timer would cover the
+-- cooldown you do want to see (Stormstrike's debuff on the target). /flaretimers ignore <spell> turns
+-- the timer off for one spell, by name; a few start out ignored (by ID, so in any language) and can be
+-- un-ignored. Saved: ignored[name in lower case] = true (ignored) or false (un-ignored from the list).
+local IGNORED_BY_DEFAULT = { 17364 }   -- Stormstrike
+local defaultIgnored
+local function DefaultIgnored()
+    if not defaultIgnored then
+        defaultIgnored = {}
+        for _, id in ipairs(IGNORED_BY_DEFAULT) do
+            local ok, name = pcall(C_Spell.GetSpellName, id)
+            if ok and type(name) == "string" then defaultIgnored[name:lower()] = name end
+        end
+    end
+    return defaultIgnored
+end
+
+local function IgnoreList()
+    if not ns.db then return {} end
+    if type(ns.db.ignored) ~= "table" then ns.db.ignored = {} end
+    return ns.db.ignored
+end
+
+local function Ignored(name)
+    local key = name:lower()
+    local choice = IgnoreList()[key]
+    if choice ~= nil then return choice end
+    return DefaultIgnored()[key] ~= nil
+end
+
 -- the spell in a button's slot (a spell, or a macro that casts one): its ID and name
 local function ButtonSpell(button)
     local slot = button.action
@@ -338,7 +368,7 @@ local function Sync(button, on)
     local t = button.FlareUIExt_AuraTimer
     local id, name
     if on then id, name = ButtonSpell(button) end
-    if not id then
+    if not id or Ignored(name) then
         Disable(t)
         return
     end
@@ -376,6 +406,7 @@ local function Sync(button, on)
         end
     end
     t.sig = sig
+    t.name = name   -- (for /flaretimers tracked)
 end
 
 local function SyncAll()
@@ -479,6 +510,57 @@ function AT.Refresh()
 end
 
 local started = false
+
+-- /flaretimers ignore <spell>, unignore <spell>, ignored, tracked
+ns.slashHelp = {
+    "ignore <spell name>  (no timer for that spell; its button shows the cooldown as usual)",
+    "unignore <spell name>  (the timer back)",
+    "ignored  (the spells with no timer)",
+    "tracked  (the spells on your bars that can show a timer)",
+}
+function ns.OnSlash(text)
+    local command, rest = text:match("^%s*(%S+)%s*(.-)%s*$")
+    command = command and command:lower()
+    if command == "ignore" or command == "unignore" then
+        if rest == "" then
+            ns.Print("type the spell's name, for example: /flaretimers " .. command .. " Stormstrike")
+            return true
+        end
+        IgnoreList()[rest:lower()] = command == "ignore"
+        ns.Print(command == "ignore" and ("no timer for " .. rest .. " from now on.") or ("timer back for " .. rest .. "."))
+        if started then
+            -- (a timer can't be switched off in a fight: it follows at its end)
+            if InCombatLockdown() then pendingBuild = true end
+            AT.Refresh()
+        end
+        return true
+    elseif command == "ignored" then
+        local names = {}
+        for key, name in pairs(DefaultIgnored()) do
+            if IgnoreList()[key] ~= false then names[#names + 1] = name end
+        end
+        for key, on in pairs(IgnoreList()) do
+            if on and not DefaultIgnored()[key] then names[#names + 1] = key end
+        end
+        table.sort(names)
+        ns.Print(#names > 0 and ("no timer for: " .. table.concat(names, ", ")) or "no spells are ignored.")
+        return true
+    elseif command == "tracked" then
+        local seen, names = {}, {}
+        for _, button in ipairs(buttons) do
+            local t = button.FlareUIExt_AuraTimer
+            if t and t.sig and t.name and not seen[t.name] then
+                seen[t.name] = true
+                names[#names + 1] = t.name
+            end
+        end
+        table.sort(names)
+        ns.Print(#names > 0 and ("can show a timer: " .. table.concat(names, ", ")) or "no spell on your bars has a timer yet.")
+        return true
+    end
+    return false
+end
+
 ns.OnReady("FlareUI_AuraTimersDB", DEFAULTS, function()
     ns.RegisterOptions("FlareUI: Buff & Debuff Timers", {
         { key = "enabled", label = "Buff & Debuff Timers",

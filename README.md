@@ -55,6 +55,17 @@ The options appear inside FlareUI's own settings window, under Action Bars > But
 
 To run it straight from the source, clone this repository into `Interface/AddOns` as `FlareUI_AuraTimers`.
 
+## Turning the timer off for one spell
+
+Some spells leave an effect that is not worth a timer, and the timer would cover the cooldown you do want to see. You can switch the timer off spell by spell:
+
+- `/flaretimers ignore Stormstrike` turns the timer off for that spell. Its button shows the cooldown as usual.
+- `/flaretimers unignore Stormstrike` brings the timer back.
+- `/flaretimers ignored` lists the spells with no timer.
+- `/flaretimers tracked` lists the spells on your bars that can show a timer, with their exact names.
+
+Stormstrike starts out ignored. The list is saved for your whole account.
+
 ## Problems and ideas
 
 Please open an [issue](https://github.com/ronborens/FlareUI_AuraTimers/issues) and say which FlareUI version you have.
