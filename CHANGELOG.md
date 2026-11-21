@@ -2,8 +2,9 @@
 
 ## 1.3.0
 
-- New Timer Spells option in FlareUI's settings (Action Bars > Button Appearance): a dropdown listing the spells on your bars that can show a timer, each with a tick. Untick a spell to stop showing its timer.
+- New Timer Spells option in FlareUI's settings (Action Bars > Buttons): a dropdown listing the spells on your bars that can show a timer, each with a tick. Untick a spell to stop showing its timer.
 - Stormstrike starts out unticked, since its debuff timer covered the cooldown. Tick it if you want it.
+- The options now stay visible in FlareUI's settings when a FlareUI update moves or removes the tab they sit on.
 
 ## 1.2.0
 

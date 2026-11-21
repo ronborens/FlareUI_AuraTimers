@@ -37,7 +37,7 @@ It works the same way as Blizzard's Cooldown Manager, but on the action bars you
 
 ## Options
 
-The options appear inside FlareUI's own settings window, under Action Bars > Button Appearance. You can also type `/flaretimers`, or open the game's Options > AddOns.
+The options appear inside FlareUI's own settings window, under Action Bars > Buttons. You can also type `/flaretimers`, or open the game's Options > AddOns.
 
 - **Buff & Debuff Timers:** on or off.
 - **Timer Spells:** choose which spells show a timer (see below).
@@ -58,7 +58,7 @@ To run it straight from the source, clone this repository into `Interface/AddOns
 
 ## Choosing which spells get a timer
 
-Some spells leave an effect that is not worth a timer, and the timer would cover the cooldown you do want to see. The **Timer Spells** dropdown in FlareUI's settings (Action Bars > Button Appearance) lets you pick:
+Some spells leave an effect that is not worth a timer, and the timer would cover the cooldown you do want to see. The **Timer Spells** dropdown in FlareUI's settings (Action Bars > Buttons) lets you pick:
 
 - It lists the spells on your bars that can show a timer, each with a tick.
 - Untick a spell to stop showing its timer. Its button then shows the cooldown as usual.
