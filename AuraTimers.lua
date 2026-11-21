@@ -242,7 +242,7 @@ local function CreateArt(part, actionButton)
 
     Level(part, actionButton)
     Paint(part, actionButton)
-    Style(part)
+    pcall(Style, part)   -- (the look must never stop the timer being set up)
     return part
 end
 
