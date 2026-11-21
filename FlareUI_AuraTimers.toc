@@ -12,4 +12,3 @@
 
 Options.lua
 AuraTimers.lua
-Spells.lua

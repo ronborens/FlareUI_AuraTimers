@@ -46,8 +46,8 @@ local function Readable(v)
 end
 
 -- IGNORED SPELLS. Some spells leave an effect that isn't worth a timer, and the timer would cover the
--- cooldown you do want to see (Stormstrike's debuff on the target). The Timer Spells window
--- (Spells.lua) turns the timer off for one spell, by name; a few start out ignored (by ID, so in any
+-- cooldown you do want to see (Stormstrike's debuff on the target). The Timer Spells dropdown in
+-- FlareUI's settings turns the timer off for one spell, by name; a few start out ignored (by ID, so in any
 -- language) and can be switched back on. Saved: ignored[name in lower case] = the name or true (ignored), or false (un-ignored from the list).
 local IGNORED_BY_DEFAULT = { 17364 }   -- Stormstrike
 local defaultIgnored
@@ -511,8 +511,9 @@ end
 
 local started = false
 
--- The window's side (Spells.lua). Every spell on the bars that can show a timer, and every spell
--- switched off (on the bars or not), by name: { name, icon, ignored }.
+-- TIMER SPELLS, in FlareUI's settings window: a dropdown of ticks, one per spell (FlareUI's own kind
+-- of row, as its Buff Reminders' lists). Every spell on the bars that can show a timer, and every
+-- spell switched off (on the bars or not), by name: { name, icon, ignored }.
 function AT.Candidates()
     local byKey, list = {}, {}
     local function add(name, icon, onBars)
@@ -572,15 +573,58 @@ function AT.SetIgnored(name, ignored)
     end
 end
 
+-- FlareUI's row. Its value is the ticked spells' names (lower case) joined by commas, FlareUI's way
+-- for a dropdown of ticks; the list is read fresh each time the dropdown opens. (A name with a comma
+-- in it can't be a tick and is left out.)
+local spellTokens = {}
+local function SpellToken(name)
+    local token = name:lower()
+    if not token:find(",", 1, true) then return token end
+end
+local SPELLS_ROW = {
+    kind = "dropdown",
+    toggles = { exclusive = {}, tokens = spellTokens, empty = "" },
+    choices = function()
+        local list = {}
+        for i = #spellTokens, 1, -1 do spellTokens[i] = nil end
+        for _, spell in ipairs(AT.Candidates()) do
+            local token = SpellToken(spell.name)
+            if token then
+                spellTokens[#spellTokens + 1] = token
+                list[#list + 1] = { token, spell.name }
+            end
+        end
+        return list
+    end,
+    get = function()
+        local on = {}
+        for _, spell in ipairs(AT.Candidates()) do
+            local token = SpellToken(spell.name)
+            if token and not spell.ignored then on[#on + 1] = token end
+        end
+        return table.concat(on, ",")
+    end,
+    set = function(value)
+        local ticked = {}
+        for token in tostring(value or ""):gmatch("[^,]+") do ticked[token] = true end
+        for _, spell in ipairs(AT.Candidates()) do
+            local token = SpellToken(spell.name)
+            if token then
+                local ignored = not ticked[token]
+                if ignored ~= spell.ignored then AT.SetIgnored(spell.name, ignored) end
+            end
+        end
+    end,
+}
+
 ns.OnReady("FlareUI_AuraTimersDB", DEFAULTS, function()
     ns.RegisterOptions("FlareUI: Buff & Debuff Timers", {
         { key = "enabled", label = "Buff & Debuff Timers",
           flare = { key = "ab.extAuraTimers", section = "ab.buttonAppearance", half = true },
           tip = "While a spell's effect is up, its action button shows the time left in gold instead of the cooldown, with its stacks. Your buffs (Bloodrage, Lightning Shield) and your debuffs on your target (Flame Shock). Works in combat too. A buff's timer starts showing after the first time you have that buff out of combat." },
-        { key = "spells", label = "Timer Spells", buttonText = "Choose Spells",
-          onClick = function() if ns.SpellPicker then ns.SpellPicker.Open() end end,
-          flare = { key = "ab.extAuraSpells", section = "ab.buttonAppearance", half = true },
-          tip = "Opens a list of the spells on your bars that can show a timer. Untick one to stop showing its timer: its button then shows the cooldown as usual. Stormstrike starts out unticked." },
+        { key = "spells", label = "Timer Spells", flareOnly = true, flareDef = SPELLS_ROW,
+          flare = { key = "ab.extAuraSpells", section = "ab.buttonAppearance" },
+          tip = "Which spells show a timer. Every spell on your bars that can show one is listed: untick a spell and its button shows the cooldown as usual, with no timer. Stormstrike starts out unticked. Attack spells are listed straight away; a buff spell is listed after you have had its buff once out of combat." },
         { key = "color", label = "Timer Colour", color = true,
           flare = { key = "ab.extAuraColor", section = "ab.buttonAppearance", half = true },
           tip = "The colour of the timer's sweep and time on your action buttons. Gold by default. Type /flaretimers color reset to go back to gold." },

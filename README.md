@@ -58,9 +58,9 @@ To run it straight from the source, clone this repository into `Interface/AddOns
 
 ## Choosing which spells get a timer
 
-Some spells leave an effect that is not worth a timer, and the timer would cover the cooldown you do want to see. The Timer Spells window lets you pick:
+Some spells leave an effect that is not worth a timer, and the timer would cover the cooldown you do want to see. The **Timer Spells** dropdown in FlareUI's settings (Action Bars > Button Appearance) lets you pick:
 
-- Click **Choose Spells** in the options (or type `/flaretimers spells`) to open a list of the spells on your bars that can show a timer.
+- It lists the spells on your bars that can show a timer, each with a tick.
 - Untick a spell to stop showing its timer. Its button then shows the cooldown as usual.
 - Tick it again to bring the timer back.
 
