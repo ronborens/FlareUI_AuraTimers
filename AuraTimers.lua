@@ -23,7 +23,7 @@ local AT = {}
 ns.AuraTimers = AT
 
 local GOLD = { 1, 0.82, 0.25 }   -- the timer's colour unless another is picked
-local DEFAULTS = { enabled = true, auraIDs = {}, color = GOLD, showSweep = true, showTime = true, showStacks = true }
+local DEFAULTS = { enabled = true, auraIDs = {}, color = GOLD, cooldownLook = false, showSweep = true, showTime = true, showStacks = true }
 local BAR_PREFIXES = {
     "ActionButton", "MultiBarBottomLeftButton", "MultiBarBottomRightButton", "MultiBarRightButton",
     "MultiBarLeftButton", "MultiBar5Button", "MultiBar6Button", "MultiBar7Button",
@@ -173,12 +173,30 @@ end
 
 -- The picked colour on the sweep and the time, and each piece shown or not (the options). A piece
 -- switched off is made see-through and not hidden: the game shows and fills these itself.
-local function Style(part)
+-- The time's colour and the sweep's (with its alpha). Same as Cooldowns: the dark sweep every
+-- cooldown has, and the colour the button's own cooldown number is drawn in.
+local COOLDOWN_SWEEP = { 0, 0, 0, 0.8 }   -- the game's own
+local function Colors(actionButton)
+    if ns.db and ns.db.cooldownLook then
+        local r, g, b = 1, 1, 1
+        local cd = actionButton and actionButton.cooldown
+        local numbers = cd and cd.GetCountdownFontString and cd:GetCountdownFontString()
+        if numbers then
+            local ok, nr, ng, nb = pcall(numbers.GetTextColor, numbers)
+            if ok and type(nr) == "number" and type(ng) == "number" and type(nb) == "number" then r, g, b = nr, ng, nb end
+        end
+        return r, g, b, COOLDOWN_SWEEP[1], COOLDOWN_SWEEP[2], COOLDOWN_SWEEP[3], COOLDOWN_SWEEP[4]
+    end
     local r, g, b = ns.ColorOf("color")
+    return r, g, b, r, g, b, SWIPE_ALPHA
+end
+
+local function Style(part)
+    local r, g, b, sr, sg, sb, sa = Colors(part.actionButton)
     local db = ns.db or {}
     local sweep = db.showSweep ~= false
     part.Swipe:SetDrawSwipe(sweep)
-    part.Swipe:SetSwipeColor(r, g, b, sweep and SWIPE_ALPHA or 0)
+    part.Swipe:SetSwipeColor(sr, sg, sb, sweep and sa or 0)
     part.Time:SetTextColor(r, g, b)
     part.Time:SetAlpha(db.showTime ~= false and 1 or 0)
     part.Count:SetAlpha(db.showStacks ~= false and 1 or 0)
@@ -196,6 +214,7 @@ end
 -- The timer's look on an action button: part (laid over the button) gets an icon over the cooldown, a
 -- gold swipe over it, the time in gold in the middle and the stacks in the corner
 local function CreateArt(part, actionButton)
+    part.actionButton = actionButton
     part:SetAllPoints(actionButton)
     local icon = actionButton.icon or actionButton
 
@@ -228,12 +247,13 @@ local function CreateArt(part, actionButton)
 end
 
 -- The time left as text: FlareUI's own format when it offers one, else the game's
-local function BindTime(auraButton, fontString)
+local function BindTime(auraButton, fontString, actionButton)
     local F = _G.FlareUI
     if not (type(F) == "table" and F.SetAuraDurationText and pcall(F.SetAuraDurationText, auraButton, fontString, false)) then
         pcall(auraButton.SetDurationText, auraButton, fontString, {})
     end
-    fontString:SetTextColor(ns.ColorOf("color"))   -- (FlareUI's format leaves it white)
+    local r, g, b = Colors(actionButton)
+    fontString:SetTextColor(r, g, b)   -- (FlareUI's format leaves it white)
 end
 
 -- The group's button: the timer's art, laid over the action button, filled by the game. The game can
@@ -250,7 +270,7 @@ local function InitFrame(actionButton)
         end
         pcall(auraButton.SetIcon, auraButton, part.Icon)
         pcall(auraButton.SetDurationCooldown, auraButton, part.Swipe)
-        BindTime(auraButton, part.Time)
+        BindTime(auraButton, part.Time, actionButton)
         pcall(auraButton.SetApplicationCount, auraButton, part.Count, {})
     end
 end
@@ -462,6 +482,9 @@ ns.OnReady("FlareUI_AuraTimersDB", DEFAULTS, function()
         { key = "color", label = "Timer Colour", color = true,
           flare = { key = "ab.extAuraColor", section = "ab.buttonAppearance", half = true },
           tip = "The colour of the timer's sweep and time on your action buttons. Gold by default. Type /flaretimers color reset to go back to gold." },
+        { key = "cooldownLook", label = "Timer Same as Cooldowns",
+          flare = { key = "ab.extAuraCooldownLook", section = "ab.buttonAppearance", half = true },
+          tip = "The timer uses the game's normal cooldown look in place of the Timer Colour: the dark sweep, and the time in the colour your cooldown numbers have." },
         { key = "showSweep", label = "Timer Sweep",
           flare = { key = "ab.extAuraSweep", section = "ab.buttonAppearance", half = true },
           tip = "The coloured sweep that drains over the button while the effect runs out." },
