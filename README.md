@@ -40,6 +40,7 @@ It works the same way as Blizzard's Cooldown Manager, but on the action bars you
 The options appear inside FlareUI's own settings window, under Action Bars > Button Appearance. You can also type `/flaretimers`, or open the game's Options > AddOns.
 
 - **Buff & Debuff Timers:** on or off.
+- **Timer Spells:** choose which spells show a timer (see below).
 - **Timer Colour:** pick your own colour for the sweep and the time. Gold by default.
 - **Timer Number Same as Cooldowns:** draw the time in the colour your cooldown numbers have, instead of the Timer Colour.
 - **Timer Sweep Same as Cooldowns:** use the dark sweep every cooldown has, instead of the Timer Colour.
@@ -55,16 +56,15 @@ The options appear inside FlareUI's own settings window, under Action Bars > But
 
 To run it straight from the source, clone this repository into `Interface/AddOns` as `FlareUI_AuraTimers`.
 
-## Turning the timer off for one spell
+## Choosing which spells get a timer
 
-Some spells leave an effect that is not worth a timer, and the timer would cover the cooldown you do want to see. You can switch the timer off spell by spell:
+Some spells leave an effect that is not worth a timer, and the timer would cover the cooldown you do want to see. The Timer Spells window lets you pick:
 
-- `/flaretimers ignore Stormstrike` turns the timer off for that spell. Its button shows the cooldown as usual.
-- `/flaretimers unignore Stormstrike` brings the timer back.
-- `/flaretimers ignored` lists the spells with no timer.
-- `/flaretimers tracked` lists the spells on your bars that can show a timer, with their exact names.
+- Click **Choose Spells** in the options (or type `/flaretimers spells`) to open a list of the spells on your bars that can show a timer.
+- Untick a spell to stop showing its timer. Its button then shows the cooldown as usual.
+- Tick it again to bring the timer back.
 
-Stormstrike starts out ignored. The list is saved for your whole account.
+Stormstrike starts out unticked. Your choices are saved for your whole account.
 
 ## Problems and ideas
 

@@ -46,9 +46,9 @@ local function Readable(v)
 end
 
 -- IGNORED SPELLS. Some spells leave an effect that isn't worth a timer, and the timer would cover the
--- cooldown you do want to see (Stormstrike's debuff on the target). /flaretimers ignore <spell> turns
--- the timer off for one spell, by name; a few start out ignored (by ID, so in any language) and can be
--- un-ignored. Saved: ignored[name in lower case] = true (ignored) or false (un-ignored from the list).
+-- cooldown you do want to see (Stormstrike's debuff on the target). The Timer Spells window
+-- (Spells.lua) turns the timer off for one spell, by name; a few start out ignored (by ID, so in any
+-- language) and can be switched back on. Saved: ignored[name in lower case] = the name or true (ignored), or false (un-ignored from the list).
 local IGNORED_BY_DEFAULT = { 17364 }   -- Stormstrike
 local defaultIgnored
 local function DefaultIgnored()
@@ -71,7 +71,7 @@ end
 local function Ignored(name)
     local key = name:lower()
     local choice = IgnoreList()[key]
-    if choice ~= nil then return choice end
+    if choice ~= nil then return choice and true or false end   -- (a name: ignored; false: un-ignored)
     return DefaultIgnored()[key] ~= nil
 end
 
@@ -511,54 +511,65 @@ end
 
 local started = false
 
--- /flaretimers ignore <spell>, unignore <spell>, ignored, tracked
-ns.slashHelp = {
-    "ignore <spell name>  (no timer for that spell; its button shows the cooldown as usual)",
-    "unignore <spell name>  (the timer back)",
-    "ignored  (the spells with no timer)",
-    "tracked  (the spells on your bars that can show a timer)",
-}
-function ns.OnSlash(text)
-    local command, rest = text:match("^%s*(%S+)%s*(.-)%s*$")
-    command = command and command:lower()
-    if command == "ignore" or command == "unignore" then
-        if rest == "" then
-            ns.Print("type the spell's name, for example: /flaretimers " .. command .. " Stormstrike")
-            return true
+-- The window's side (Spells.lua). Every spell on the bars that can show a timer, and every spell
+-- switched off (on the bars or not), by name: { name, icon, ignored }.
+function AT.Candidates()
+    local byKey, list = {}, {}
+    local function add(name, icon, onBars)
+        local key = name:lower()
+        local entry = byKey[key]
+        if not entry then
+            entry = { name = name, icon = icon, ignored = Ignored(name) }
+            byKey[key] = entry
+            list[#list + 1] = entry
+        elseif onBars then
+            entry.name, entry.icon = name, icon or entry.icon
         end
-        IgnoreList()[rest:lower()] = command == "ignore"
-        ns.Print(command == "ignore" and ("no timer for " .. rest .. " from now on.") or ("timer back for " .. rest .. "."))
-        if started then
-            -- (a timer can't be switched off in a fight: it follows at its end)
-            if InCombatLockdown() then pendingBuild = true end
-            AT.Refresh()
-        end
-        return true
-    elseif command == "ignored" then
-        local names = {}
-        for key, name in pairs(DefaultIgnored()) do
-            if IgnoreList()[key] ~= false then names[#names + 1] = name end
-        end
-        for key, on in pairs(IgnoreList()) do
-            if on and not DefaultIgnored()[key] then names[#names + 1] = key end
-        end
-        table.sort(names)
-        ns.Print(#names > 0 and ("no timer for: " .. table.concat(names, ", ")) or "no spells are ignored.")
-        return true
-    elseif command == "tracked" then
-        local seen, names = {}, {}
-        for _, button in ipairs(buttons) do
-            local t = button.FlareUIExt_AuraTimer
-            if t and t.sig and t.name and not seen[t.name] then
-                seen[t.name] = true
-                names[#names + 1] = t.name
+    end
+    for _, prefix in ipairs(BAR_PREFIXES) do
+        for i = 1, 12 do
+            local button = _G[prefix .. i]
+            local id, name
+            if button then id, name = ButtonSpell(button) end
+            if id then
+                local okHarm, harmful = pcall(C_Spell.IsSpellHarmful, id)
+                local _, _, known = AuraIDs(id, name)
+                if (okHarm and Readable(harmful) and harmful) or known then
+                    local okIcon, icon = pcall(C_Spell.GetSpellTexture, id)
+                    add(name, okIcon and Readable(icon) and icon or nil, true)
+                end
             end
         end
-        table.sort(names)
-        ns.Print(#names > 0 and ("can show a timer: " .. table.concat(names, ", ")) or "no spell on your bars has a timer yet.")
-        return true
     end
-    return false
+    -- switched off and not on the bars now: still listed, to switch back on
+    local function addOff(name)
+        if not byKey[name:lower()] then
+            local okIcon, icon = pcall(C_Spell.GetSpellTexture, name)
+            add(name, okIcon and Readable(icon) and icon or nil, false)
+        end
+    end
+    for key, name in pairs(DefaultIgnored()) do
+        if IgnoreList()[key] ~= false then addOff(name) end
+    end
+    for key, on in pairs(IgnoreList()) do
+        if on then addOff(type(on) == "string" and on or key) end
+    end
+    table.sort(list, function(x, y) return x.name < y.name end)
+    return list
+end
+
+function AT.SetIgnored(name, ignored)
+    local key = name:lower()
+    if DefaultIgnored()[key] then
+        IgnoreList()[key] = ignored and true or false
+    else
+        IgnoreList()[key] = ignored and name or nil   -- (the name as the game writes it, for the list)
+    end
+    if started then
+        -- (a timer can't be switched off in a fight: it follows at its end)
+        if InCombatLockdown() then pendingBuild = true end
+        AT.Refresh()
+    end
 end
 
 ns.OnReady("FlareUI_AuraTimersDB", DEFAULTS, function()
@@ -566,6 +577,10 @@ ns.OnReady("FlareUI_AuraTimersDB", DEFAULTS, function()
         { key = "enabled", label = "Buff & Debuff Timers",
           flare = { key = "ab.extAuraTimers", section = "ab.buttonAppearance", half = true },
           tip = "While a spell's effect is up, its action button shows the time left in gold instead of the cooldown, with its stacks. Your buffs (Bloodrage, Lightning Shield) and your debuffs on your target (Flame Shock). Works in combat too. A buff's timer starts showing after the first time you have that buff out of combat." },
+        { key = "spells", label = "Timer Spells", buttonText = "Choose Spells",
+          onClick = function() if ns.SpellPicker then ns.SpellPicker.Open() end end,
+          flare = { key = "ab.extAuraSpells", section = "ab.buttonAppearance", half = true },
+          tip = "Opens a list of the spells on your bars that can show a timer. Untick one to stop showing its timer: its button then shows the cooldown as usual. Stormstrike starts out unticked." },
         { key = "color", label = "Timer Colour", color = true,
           flare = { key = "ab.extAuraColor", section = "ab.buttonAppearance", half = true },
           tip = "The colour of the timer's sweep and time on your action buttons. Gold by default. Type /flaretimers color reset to go back to gold." },

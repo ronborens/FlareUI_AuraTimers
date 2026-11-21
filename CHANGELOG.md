@@ -2,8 +2,8 @@
 
 ## 1.3.0
 
-- You can now switch the timer off for individual spells: `/flaretimers ignore <spell name>`, and `/flaretimers unignore <spell name>` to bring it back. `/flaretimers ignored` lists them and `/flaretimers tracked` lists the spells on your bars that can show a timer.
-- Stormstrike starts out ignored, since its debuff timer covered the cooldown. Un-ignore it if you want it.
+- New Timer Spells window: a list of the spells on your bars that can show a timer, each with a tick box. Untick a spell to stop showing its timer. Open it with the Choose Spells button in the options, or type `/flaretimers spells`.
+- Stormstrike starts out unticked, since its debuff timer covered the cooldown. Tick it if you want it.
 
 ## 1.2.0
 
