@@ -618,7 +618,7 @@ local SPELLS_ROW = {
 }
 
 ns.OnReady("FlareUI_AuraTimersDB", DEFAULTS, function()
-    ns.RegisterOptions("FlareUI: Buff & Debuff Timers", {
+    ns.RegisterOptions("Buff & Debuff Timers for FlareUI", {
         { key = "enabled", label = "Buff & Debuff Timers",
           flare = { key = "ab.extAuraTimers", section = "ab.buttonAppearance", half = true },
           tip = "While a spell's effect is up, its action button shows the time left in gold instead of the cooldown, with its stacks. Your buffs (Bloodrage, Lightning Shield) and your debuffs on your target (Flame Shock). Works in combat too. A buff's timer starts showing after the first time you have that buff out of combat." },

@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.3.1
+
+- Renamed to Buff & Debuff Timers for FlareUI, to make clear it is an unofficial add-on and not part of FlareUI. Nothing else changes.
+
 ## 1.3.0
 
 - New Timer Spells option in FlareUI's settings (Action Bars > Buttons): a dropdown listing the spells on your bars that can show a timer, each with a tick. Untick a spell to stop showing its timer.

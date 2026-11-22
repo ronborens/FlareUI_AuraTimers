@@ -1,6 +1,8 @@
-# FlareUI: Buff & Debuff Timers
+# Buff & Debuff Timers for FlareUI
 
-An extension for the FlareUI interface that puts your buff and debuff timers directly on your action buttons, so you can see how long an effect has left without looking away from your bars.
+An unofficial add-on for FlareUI that puts your buff and debuff timers directly on your action buttons, so you can see how long an effect has left without looking away from your bars.
+
+_Not made by, or affiliated with, FlareUI's author._
 
 ## What it does
 
